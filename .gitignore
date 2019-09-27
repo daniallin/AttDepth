@@ -1,0 +1,8 @@
+.idea/*
+.git/*
+**/__pycache__/*
+train_results/*
+.DS_Store
+test_lin.py
+pretrained/*
+dataset/*
