@@ -233,7 +233,7 @@ if __name__ == '__main__':
             continue
         zip_path = os.path.join('../dataset/nyuv2_zip', z)
         raw_archive = RawDatasetArchive(zip_path,
-                                        extract_path='E:/DepthEstimation/Champion/dataset/nyuv2_extract',
+                                        extract_path='E:/DepthEstimation/AttDepth/dataset/nyuv2_extract',
                                         json_path='../dataset/nyuv2')
         img_path_child = raw_archive.get_path()
         img_path.extend(img_path_child)

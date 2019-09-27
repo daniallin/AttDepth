@@ -67,7 +67,7 @@ def main(args):
             train_depth = train_data['depth'].type(torch.FloatTensor)
             train_img = train_data['rgb']
             if args.use_cuda:
-                train_img, train_depth = train_data['rgb'].cuda(), train_data['depth'].cuda()
+                train_img, train_depth = train_img.cuda(), train_depth.cuda()
 
             optimizer.zero_grad()
 
@@ -101,9 +101,9 @@ def main(args):
         model.eval()
         with torch.no_grad():
             for k, val_data in enumerate(tqdm(val_loader)):
-                # if k > 0: break
-                val_depth = val_data['B'].type(torch.FloatTensor)
-                val_img = val_data['A']
+                if k > 0: break
+                val_depth = val_data['depth'].type(torch.FloatTensor)
+                val_img = val_data['rgb']
                 if args.use_cuda:
                     val_img, val_depth = val_img.cuda(), val_depth.cuda()
 
@@ -133,7 +133,8 @@ def main(args):
             best_loss = val_avg.avg
             keeper.save_checkpoint({
                 'epoch': epoch,
-                'state_dict': model.module.state_dict(),
+                'state_dict': model.state_dict(),  # cpu
+                # 'state_dict': model.module.state_dict(),  # GPU
                 'optimizer': optimizer.state_dict(),
                 'best_loss': best_loss,
             }, 'best_model.pth')
@@ -141,7 +142,8 @@ def main(args):
         log.info('Saving model ...')
         keeper.save_checkpoint({
             'epoch': epoch,
-            'state_dict': model.module.state_dict(),
+            'state_dict': model.state_dict(),  # cpu
+            # 'state_dict': model.module.state_dict(),  # GPU
             'optimizer': optimizer.state_dict(),
             'best_loss': best_loss,
         })

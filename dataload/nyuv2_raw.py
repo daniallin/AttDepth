@@ -38,7 +38,6 @@ class NYUV2Raw():
         depth_path = self.depth_paths[index]
 
         with open(rgb_path, 'rb') as r:
-            print(rgb_path)
             rgb_raw = self.read_ppm(r)  # bgr, H*W*C
         with open(depth_path, 'rb') as d:
             depth_rel = self.read_pgm(d)
@@ -66,7 +65,7 @@ class NYUV2Raw():
         # Rotate
         clr = ColorJitter()
         if self.phase == 'train':
-            compose = Compose((RandomCenterCrop((self.args.crop_size[1], self.args.crop_size[0])),
+            compose = Compose((RandomCenterCrop((self.args.crop_size[0], self.args.crop_size[1])),
                                RandomHorizontalFlip(),
                                RandomVerticalFlip(),
                                RandomRotate()))
@@ -74,7 +73,7 @@ class NYUV2Raw():
             imgs[0] = clr(imgs[0])
             imgs = compose(imgs)
         elif self.phase == 'val':
-            compose = Compose((RandomCenterCrop((self.args.crop_size[1], self.args.crop_size[0]))))
+            compose = Compose((RandomCenterCrop((self.args.crop_size[0], self.args.crop_size[1])),))
             imgs[0] = clr(imgs[0])
             imgs = compose(imgs)
         elif self.phase == 'test':

@@ -55,14 +55,14 @@ class NYUV2Dataset():
     def img_transformer(self, imgs):
         # Rotate
         if self.phase == 'train':
-            compose = Compose((RandomCenterCrop((self.args.crop_size[1], self.args.crop_size[0])),
+            compose = Compose((RandomCenterCrop((self.args.crop_size[0], self.args.crop_size[1])),
                                RandomHorizontalFlip(),
                                RandomVerticalFlip(),
                                ColorJitter(),
                                RandomRotate()))
             imgs = compose(imgs)
         elif self.phase == 'val':
-            compose = Compose((RandomCenterCrop((self.args.crop_size[1], self.args.crop_size[0])),
+            compose = Compose((RandomCenterCrop((self.args.crop_size[0], self.args.crop_size[1])),
                                ColorJitter()))
             imgs = compose(imgs)
         elif self.phase == 'test':

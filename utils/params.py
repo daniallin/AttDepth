@@ -5,7 +5,7 @@ import numpy as np
 def set_params():
     parser = argparse.ArgumentParser(description='Depth Estimation using Monocular Images')
     parser.add_argument('--dataset', type=str, default='nyu_raw', choices=['nyuv2', 'kitti', 'nyu_raw'])
-    parser.add_argument('--nyu_path', type=str, default='E:/DepthEstimation/Champion/dataset/nyuv2')
+    parser.add_argument('--nyu_path', type=str, default='E:/DepthEstimation/AttDepth/dataset/nyuv2')
     parser.add_argument('--kitti_path', type=str, default='dataset/kitti/')
     parser.add_argument('--img_mean', default=(0.485, 0.456, 0.406), type=tuple)
     parser.add_argument('--img_std', default=(0.229, 0.224, 0.225), type=tuple)
@@ -15,7 +15,7 @@ def set_params():
     parser.add_argument('--depth_bin_interval', type=int, default=None, help='interval of each bin')
     parser.add_argument('--depth_bin_border', type=int, default=None, help='boundary of each bin')
     parser.add_argument('--minus_point_5', default=False, type=bool)
-    parser.add_argument('--crop_size', type=float, default=(384, 480))
+    parser.add_argument('--crop_size', type=float, default=(384, 480), help='height & width')
 
     # train
     parser.add_argument('--use_cuda', type=bool, default=False)
@@ -24,7 +24,7 @@ def set_params():
     parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--sync_bn', type=bool, default=False, help='whether using sync batch normalization')
     parser.add_argument('--output_scale', type=int, default=16, help='output scale of encoder')
-    parser.add_argument('--epochs', type=int, default=100)
+    parser.add_argument('--epochs', type=int, default=1)
     parser.add_argument('--start_epoch', type=int, default=0)
     parser.add_argument('--momentum', type=float, default=0.9, help='momentum (default: 0.9)')
     parser.add_argument('--weight_decay', type=float, default=1e-3, help='w-decay (default: 5e-4)')
