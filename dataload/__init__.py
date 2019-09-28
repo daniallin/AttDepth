@@ -2,6 +2,7 @@ from torch.utils.data import DataLoader
 
 from dataload.nyuv2_labeled import NYUV2Dataset
 from dataload.nyuv2_raw import NYUV2Raw
+from dataload.kitti_dataset import KITTIDataset
 
 
 def data_loader(args, **kwargs):
@@ -17,6 +18,15 @@ def data_loader(args, **kwargs):
     elif args.dataset == 'nyu_raw':
         train_set = NYUV2Raw(args.nyu_path, args)
         val_set = NYUV2Raw(args.nyu_path, args, phase='val')
+        print('Train_size: {}. Validation size: {}'.format(len(train_set), len(val_set)))
+
+        train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, **kwargs)
+        val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, **kwargs)
+        return train_loader, val_loader
+
+    elif args.dataset == 'kitti':
+        train_set = KITTIDataset(args.kitti_path, args)
+        val_set = KITTIDataset(args.kitti_path, args, phase='val')
         print('Train_size: {}. Validation size: {}'.format(len(train_set), len(val_set)))
 
         train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, **kwargs)

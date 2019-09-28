@@ -125,7 +125,7 @@ def main(args):
                 log.info('val rmse of epoch/batch {}/{} is {}'.format(epoch, k, val_loss))
 
                 writer.add_scalar('validation RMSE', val_loss, epoch * val_bts + k)
-            writer.add_scalar('Epoch validation RMSE', val_loss, epoch)
+            writer.add_scalar('Epoch validation RMSE', val_avg.avg, epoch)
 
             keeper.save_loss([val_avg.avg], 'val_losses.csv')
 

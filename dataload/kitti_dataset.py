@@ -12,7 +12,7 @@ class KITTIDataset():
     def __init__(self, file_path, args, phase='train'):
         self.args = args
         self.phase = phase
-        self.dir_anno = os.path.join(file_path, 'annotations', phase + '_annotations.json')
+        self.dir_anno = os.path.join(file_path, phase + '_raw_annotations.json')
         self.rgb_paths, self.depth_paths = self.get_paths()
         self.depth_normalize = 255. * 80.
         self.uniform_size = (385, 1243)
@@ -33,11 +33,10 @@ class KITTIDataset():
         rgb_path = self.rgb_paths[index]
         depth_path = self.depth_paths[index]
 
-        rgb_raw = cv2.imread(rgb_path, -1)  # [H, W, C] C:bgr
+        rgb_raw = cv2.imread(rgb_path)  # [H, W, C] C:bgr
         depth_raw = cv2.imread(depth_path, -1)
 
-        rgb = self.img_transformer(rgb_raw)
-        depth = self.img_transformer(depth_raw)
+        rgb, depth = self.img_transformer([rgb_raw, depth_raw])
 
         rgb = rgb.transpose((2, 0, 1))  # H*W*C to C*H*W
         depth = depth[np.newaxis, :, :]
@@ -53,17 +52,18 @@ class KITTIDataset():
         return data
 
     def img_transformer(self, imgs):
-        # Rotate
+        clr = ColorJitter()
         if self.phase == 'train':
             compose = Compose((RandomCenterCrop((self.args.crop_size[0], self.args.crop_size[1])),
                                RandomHorizontalFlip(),
                                RandomVerticalFlip(),
-                               ColorJitter(),
                                RandomRotate()))
+
+            imgs[0] = clr(imgs[0])
             imgs = compose(imgs)
         elif self.phase == 'val':
-            compose = Compose((RandomCenterCrop((self.args.crop_size[0], self.args.crop_size[1])),
-                               ColorJitter()))
+            compose = Compose((RandomCenterCrop((self.args.crop_size[0], self.args.crop_size[1])),))
+            imgs[0] = clr(imgs[0])
             imgs = compose(imgs)
         elif self.phase == 'test':
             imgs = imgs

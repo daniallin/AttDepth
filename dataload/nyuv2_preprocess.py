@@ -48,7 +48,7 @@ class RawDatasetArchive():
             depth_path = Path(os.path.join(self.extract_path, frame[0])).as_posix()
             color_path = Path(os.path.join(self.extract_path), frame[1]).as_posix()
             if not(os.path.exists(depth_path) and os.path.exists(color_path)):
-                raw_archive.extract_frame(frame)
+                self.extract_frame(frame)
             rgb_depth['rgb_path'] = color_path
             rgb_depth['depth_path'] = depth_path
             img_path.append(rgb_depth)

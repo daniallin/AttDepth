@@ -62,7 +62,6 @@ class NYUV2Raw():
         return data
 
     def img_transformer(self, imgs):
-        # Rotate
         clr = ColorJitter()
         if self.phase == 'train':
             compose = Compose((RandomCenterCrop((self.args.crop_size[0], self.args.crop_size[1])),

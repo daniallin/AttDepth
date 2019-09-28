@@ -4,7 +4,7 @@ import numpy as np
 
 def set_params():
     parser = argparse.ArgumentParser(description='Depth Estimation using Monocular Images')
-    parser.add_argument('--dataset', type=str, default='nyu_raw', choices=['nyuv2', 'kitti', 'nyu_raw'])
+    parser.add_argument('--dataset', type=str, default='kitti', choices=['nyuv2', 'kitti', 'nyu_raw'])
     parser.add_argument('--nyu_path', type=str, default='E:/DepthEstimation/AttDepth/dataset/nyuv2')
     parser.add_argument('--kitti_path', type=str, default='dataset/kitti/')
     parser.add_argument('--img_mean', default=(0.485, 0.456, 0.406), type=tuple)
@@ -15,7 +15,7 @@ def set_params():
     parser.add_argument('--depth_bin_interval', type=int, default=None, help='interval of each bin')
     parser.add_argument('--depth_bin_border', type=int, default=None, help='boundary of each bin')
     parser.add_argument('--minus_point_5', default=False, type=bool)
-    parser.add_argument('--crop_size', type=float, default=(384, 480), help='height & width')
+    parser.add_argument('--crop_size', type=float, default=(320, 960), help='height & width')
 
     # train
     parser.add_argument('--use_cuda', type=bool, default=False)

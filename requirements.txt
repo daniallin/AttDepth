@@ -1,0 +1,9 @@
+pytorch>=1.2
+torchvision >=0.4
+tqdm
+numpy
+pandas
+matplotlib
+json
+opencv-python
+

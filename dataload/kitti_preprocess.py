@@ -7,7 +7,6 @@ import random
 from PIL import Image
 import torch
 from torchvision import transforms
-from utils.params import set_params
 
 
 def get_rgb_depth(raw_path, anno_path):
@@ -82,7 +81,7 @@ def calculate_rgb_mean_std(img_path_list, minus_point_5=False):
 
 if __name__ == '__main__':
     # must set the path as your virtual kitti dataset path
-    get_rgb_depth('../dataset/kitti_raw', 'E:/Datasets_Win/KITTI/depth/data_depth_annotated')
+    get_rgb_depth('E:/DepthEstimation/AttDepth/dataset/kitti_raw', 'E:/Datasets_Win/KITTI/depth/data_depth_annotated')
 
     # img_path_list = []
     # for p in rgb:
