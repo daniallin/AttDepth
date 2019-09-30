@@ -14,9 +14,9 @@ def _conv_layer(in_chans, out_chans, k, s=1, p=1, sync_bn=False):
     return conv_block
 
 
-class Attention(nn.Module):
+class AttConcat(nn.Module):
     def __init__(self, in_chans, out_chans, method):
-        super(Attention, self).__init__()
+        super(AttConcat, self).__init__()
         self.method = method
         # Define layers
         if self.method == 'general':
@@ -29,25 +29,27 @@ class Attention(nn.Module):
 
     def forward(self, x1, x2):
         energy = self._score(x1, x2)
-        return F.softmax(energy, dim=1)
+        att_x2 = torch.mul(x2, energy)
+        att_x = torch.cat((x1, att_x2), dim=1)
+        return att_x
 
     def _score(self, x1, x2):
         """Calculate the relevance of a particular encoder output in respect to the decoder hidden."""
 
-        if self.method == 'dot':
-            energy = torch.bmm(x1.unsqueeze(1), x2.unsqueeze(2))
-        elif self.method == 'general':
+        if self.method == 'general':
             energy = self.attention(x2)
             energy = torch.bmm(x1.unsqueeze(1), energy.unsqueeze(2))
         elif self.method == 'concat':
             energy = self.attention(torch.cat((x1, x2), dim=1))
-        return energy
+        else:
+            energy = torch.bmm(x1.unsqueeze(1), x2.unsqueeze(2))
+        return F.softmax(energy, dim=1)
 
 
 class DepthUpSample(nn.Module):
     def __init__(self, in_chans, out_chans, low_size):
         super(DepthUpSample, self).__init__()
-        self.attention = Attention(in_chans+low_size, low_size, method='concat')
+        self.attention = AttConcat(in_chans+low_size, low_size, method='concat')
         self.conv = nn.Sequential(nn.Conv2d(in_chans+low_size, out_chans, 3, padding=1),
                                   nn.LeakyReLU(0.2),
                                   nn.Conv2d(out_chans, out_chans, 3, padding=1),
@@ -56,8 +58,9 @@ class DepthUpSample(nn.Module):
     def forward(self, x, low_feature):
         up_x = F.interpolate(x, size=low_feature.size()[2:], mode='bilinear', align_corners=True)
         # att_x = torch.mul(up_x, self.attention(up_x, low_feature))
-        att_low = torch.mul(low_feature, self.attention(up_x, low_feature))
-        att_x = torch.cat((up_x, att_low), dim=1)
+        # att_low = torch.mul(low_feature, self.attention(up_x, low_feature))
+        # att_x = torch.cat((up_x, att_low), dim=1)
+        att_x = self.attention(up_x, low_feature)
         output = self.conv(att_x)
         return output
 

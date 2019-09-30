@@ -14,7 +14,6 @@ def get_rgb_depth(raw_path, anno_path):
         phase = os.path.join(anno_path, p)
         img_path = list()
         for ind in os.listdir(phase):
-            rgb_depth = dict()
             date = ind[:10]
             depth_path = os.path.join(phase, ind, 'proj_depth/groundtruth/image_02')
             rgb_path = os.path.join(raw_path, date, ind, 'image_02/data')
@@ -24,11 +23,12 @@ def get_rgb_depth(raw_path, anno_path):
             rgb_list = os.listdir(rgb_path)
             for d in depth_list:
                 if d in rgb_list:
+                    rgb_depth = dict()
                     rgb_depth['rgb_path'] = Path(os.path.join(rgb_path, d)).as_posix()
                     rgb_depth['depth_path'] = Path(os.path.join(depth_path, d)).as_posix()
                     img_path.append(rgb_depth)
         random.shuffle(img_path)
-        with open("../dataset/kitti/{}_raw_annotations.json".format(p), "w") as f:
+        with open("dataset/kitti/{}_raw_annotations.json".format(p), "w") as f:
             json.dump(img_path, f)
 
 
@@ -81,7 +81,7 @@ def calculate_rgb_mean_std(img_path_list, minus_point_5=False):
 
 if __name__ == '__main__':
     # must set the path as your virtual kitti dataset path
-    get_rgb_depth('E:/DepthEstimation/AttDepth/dataset/kitti_raw', 'E:/Datasets_Win/KITTI/depth/data_depth_annotated')
+    get_rgb_depth('dataset/kitti_raw', 'E:/Datasets_Win/KITTI/depth/data_depth_annotated')
 
     # img_path_list = []
     # for p in rgb:

@@ -39,14 +39,14 @@ class RawDatasetArchive():
         for f in frame:
             self.zip.extract(f, self.extract_path)
 
-    def get_path(self):
+    def get_path(self, invalid_list):
         img_path = list()
         for frame in self.frames:
-            if frame[1] == "basement_0001c/r-1316653687.842499-3408451313.ppm":
-                continue
             rgb_depth = dict()
             depth_path = Path(os.path.join(self.extract_path, frame[0])).as_posix()
             color_path = Path(os.path.join(self.extract_path), frame[1]).as_posix()
+            if depth_path in invalid_list or color_path in invalid_list:
+                continue
             if not(os.path.exists(depth_path) and os.path.exists(color_path)):
                 self.extract_frame(frame)
             rgb_depth['rgb_path'] = color_path
@@ -228,21 +228,29 @@ def plot_color(ax, color, title="Color"):
 
 if __name__ == '__main__':
     img_path = list()
-    for z in os.listdir('../dataset/nyuv2_zip'):
+    zip_root = '/home/root123/Datasets/NYUv2'
+
+    with open('dataset/invalid.txt', 'r') as f:
+        lines = f.readlines()
+        new_lines = list(set(lines[:-1]))
+        for i, l in enumerate(new_lines):
+            new_lines[i] = new_lines[i].split('\n')[0]
+
+    for z in os.listdir(zip_root):
         if '.zip' not in z:
             continue
-        zip_path = os.path.join('../dataset/nyuv2_zip', z)
+        zip_path = os.path.join(zip_root, z)
         raw_archive = RawDatasetArchive(zip_path,
-                                        extract_path='E:/DepthEstimation/AttDepth/dataset/nyuv2_extract',
-                                        json_path='../dataset/nyuv2')
-        img_path_child = raw_archive.get_path()
+                                        extract_path='/home/root123/workspace/nyuv2_extract',
+                                        json_path='dataset/nyuv2')
+        img_path_child = raw_archive.get_path(new_lines)
         img_path.extend(img_path_child)
 
     random.shuffle(img_path)
     img_num = len(img_path)
-    with open("../dataset/nyuv2/train_raw_annotations.json", "w") as f:
+    with open("dataset/nyuv2/train_raw_annotations.json", "w") as f:
         json.dump(img_path[:int(img_num * 0.9)], f)
-    with open("../dataset/nyuv2/val_raw_annotations.json", "w") as f:
+    with open("dataset/nyuv2/val_raw_annotations.json", "w") as f:
         json.dump(img_path[int(img_num * 0.9):], f)
 
     # frame = raw_archive[5]

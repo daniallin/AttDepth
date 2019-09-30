@@ -53,4 +53,12 @@ Create the json files for train and evaluation. The json file named as `train_ra
 **Notes**: Change parameters in utils/params.py, include `dataset`,`crop_size`, `dataset_path`
 
 
+# 训练前修改
+1. dataset + crop_size
+2. batch_size + epoch
+3. use_cuda
+4. GPU / CPU model save. (3 places)
+
+5. 注释掉 if k>0: break
+
 

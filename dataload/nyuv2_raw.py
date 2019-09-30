@@ -34,13 +34,22 @@ class NYUV2Raw():
         return data
 
     def get_data(self, index):
-        rgb_path = self.rgb_paths[index]
-        depth_path = self.depth_paths[index]
+        try:
+            rgb_path = self.rgb_paths[index]
+            depth_path = self.depth_paths[index]
 
-        with open(rgb_path, 'rb') as r:
-            rgb_raw = self.read_ppm(r)  # bgr, H*W*C
-        with open(depth_path, 'rb') as d:
-            depth_rel = self.read_pgm(d)
+            with open(rgb_path, 'rb') as r:
+                rgb_raw = self.read_ppm(r)  # bgr, H*W*C
+            with open(depth_path, 'rb') as d:
+                depth_rel = self.read_pgm(d)
+        except:
+            rgb_path = self.rgb_paths[index+1]
+            depth_path = self.depth_paths[index+1]
+
+            with open(rgb_path, 'rb') as r:
+                rgb_raw = self.read_ppm(r)  # bgr, H*W*C
+            with open(depth_path, 'rb') as d:
+                depth_rel = self.read_pgm(d)
 
         # Projects a depth image from internal Kinect coordinates to world coordinates.
         depth_abs = DEPTH_PARAM_1 / (DEPTH_PARAM_2 - depth_rel)

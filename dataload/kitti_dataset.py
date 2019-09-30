@@ -32,6 +32,7 @@ class KITTIDataset():
     def get_data(self, index):
         rgb_path = self.rgb_paths[index]
         depth_path = self.depth_paths[index]
+        # print(rgb_path, depth_path)
 
         rgb_raw = cv2.imread(rgb_path)  # [H, W, C] C:bgr
         depth_raw = cv2.imread(depth_path, -1)

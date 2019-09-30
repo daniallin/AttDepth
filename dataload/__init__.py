@@ -53,11 +53,11 @@ if __name__ == '__main__':
     train_loader, val_loader = data_loader(args)
     for k, train_data in enumerate(train_loader):
         # print(train_img.size())
-        if k > 0: break
+        if k > 6: break
         train_depth = train_data['depth'].type(torch.FloatTensor)
         train_img = train_data['rgb']
 
-        fig = plt.figure("Raw Dataset Sample", figsize=(12, 5))
+        fig = plt.figure("Raw Dataset Sample", figsize=(12, 3))
 
         ax = fig.add_subplot(1, 2, 1)
         plot_color(ax, train_depth[0].mean(dim=0).numpy(), "depth")

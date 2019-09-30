@@ -2,15 +2,14 @@ import os
 import time
 from tqdm import tqdm
 import numpy as np
-from collections import OrderedDict
+import matplotlib.pyplot as plt
 
 import torch
 from torch import nn
 from torch.utils.tensorboard import SummaryWriter
-# import torchvision
 
 from utils.params import set_params
-from utils.helper import set_random_seed, AverageMeter
+from utils.helper import AverageMeter, time_lr_scheduler
 from utils.keeper import Keeper
 from utils.loss import ssim, grad_loss
 from models import build_model
@@ -38,8 +37,10 @@ def main(args):
         optimizer.load_state_dict(checkpoint['optimizer'])
         best_loss = checkpoint['best_loss']
         args.start_epoch = checkpoint['epoch'] + 1
+        start_step = checkpoint['step'] + 1
     else:
         best_loss = np.inf
+        start_step = 0
 
     # whether using pretrained model
     if args.pretrained_net is not None and args.resume is None:
@@ -63,7 +64,7 @@ def main(args):
 
         for k, train_data in enumerate(tqdm(train_loader)):
             # print(train_img.size())
-            if k > 0: break
+            # if k > 0: break
             train_depth = train_data['depth'].type(torch.FloatTensor)
             train_img = train_data['rgb']
             if args.use_cuda:
@@ -72,6 +73,7 @@ def main(args):
             optimizer.zero_grad()
 
             train_pred = model(train_img)
+
             # remove depth out of max depth
             mask = train_depth.le(args.max_depth) & train_depth.ge(args.min_depth)
             mask = mask.type(torch.FloatTensor)
@@ -96,12 +98,23 @@ def main(args):
             keeper.save_loss([epoch, train_loss.item(), rmse.item(), l_depth.item(),
                               l_edge.item(), l_ssim.item()], 'train_losses.csv')
 
+            if k % 500 == 0:
+                writer.add_scalar('learning rate', optimizer.param_groups[0]['lr'], epoch * train_bts + k)
+                keeper.save_checkpoint({
+                    'epoch': epoch,
+                    'step': k,
+                    # 'state_dict': model.state_dict(),  # cpu
+                    'state_dict': model.module.state_dict(),  # GPU
+                    'optimizer': optimizer.state_dict(),
+                    'best_loss': best_loss,
+                }, 'step_chk.pth')
+
         # evaluating test data
         val_avg = AverageMeter()
         model.eval()
         with torch.no_grad():
             for k, val_data in enumerate(tqdm(val_loader)):
-                if k > 0: break
+                # if k > 0: break
                 val_depth = val_data['depth'].type(torch.FloatTensor)
                 val_img = val_data['rgb']
                 if args.use_cuda:
@@ -129,12 +142,14 @@ def main(args):
 
             keeper.save_loss([val_avg.avg], 'val_losses.csv')
 
+            optimizer = time_lr_scheduler(optimizer, epoch, lr_decay_epoch=10)
+
         if val_avg.avg < best_loss:
             best_loss = val_avg.avg
             keeper.save_checkpoint({
                 'epoch': epoch,
-                'state_dict': model.state_dict(),  # cpu
-                # 'state_dict': model.module.state_dict(),  # GPU
+                # 'state_dict': model.state_dict(),  # cpu
+                'state_dict': model.module.state_dict(),  # GPU
                 'optimizer': optimizer.state_dict(),
                 'best_loss': best_loss,
             }, 'best_model.pth')
@@ -142,13 +157,16 @@ def main(args):
         log.info('Saving model ...')
         keeper.save_checkpoint({
             'epoch': epoch,
-            'state_dict': model.state_dict(),  # cpu
-            # 'state_dict': model.module.state_dict(),  # GPU
+            'step': 0,
+            # 'state_dict': model.state_dict(),  # cpu
+            'state_dict': model.module.state_dict(),  # GPU
             'optimizer': optimizer.state_dict(),
             'best_loss': best_loss,
         })
 
         log.info('training time of epoch {}/{} is {} \n'.format(epoch + 1, args.epochs, time.time() - e_time))
+
+        start_step = 0
 
 
 if __name__ == '__main__':

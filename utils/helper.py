@@ -27,3 +27,14 @@ def set_random_seed(random_seed=0):
         torch.cuda.manual_seed_all(random_seed)
     random.seed(random_seed)
 
+
+def time_lr_scheduler(optimizer, epoch, lr_decay=0.5, lr_decay_epoch=10):
+    """Decay learning rate by a factor of lr_decay every lr_decay_epoch epochs"""
+    if epoch % lr_decay_epoch and epoch == 0:
+        return optimizer
+
+    print("Optimizer learning rate has been decreased.")
+
+    for param_group in optimizer.param_groups:
+        param_group['lr'] *= (1. / (1. + lr_decay * epoch))
+    return optimizer
