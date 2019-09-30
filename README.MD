@@ -56,6 +56,7 @@ Create the json files for train and evaluation. The json file named as `train_ra
 # 训练前修改
 1. dataset + crop_size
 2. batch_size + epoch
+3. min_depth + max_depth
 3. use_cuda
 4. GPU / CPU model save. (3 places)
 

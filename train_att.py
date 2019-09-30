@@ -92,7 +92,7 @@ def main(args):
             train_loss.backward()
             optimizer.step()
             writer.add_scalar('training loss', train_loss, epoch * train_bts + k)
-            writer.add_scalar('training RMSE', rmse, epoch * train_bts + k)
+            # writer.add_scalar('training RMSE', rmse, epoch * train_bts + k)
 
             log.info('train  combine loss and rmse of epoch/batch {}/{} are {} and {}'.format(epoch, k, train_loss, rmse))
             keeper.save_loss([epoch, train_loss.item(), rmse.item(), l_depth.item(),
@@ -110,7 +110,8 @@ def main(args):
                 }, 'step_chk.pth')
 
         # evaluating test data
-        val_avg = AverageMeter()
+        val_rmse_avg = AverageMeter()
+        val_relabs_avg = AverageMeter()
         model.eval()
         with torch.no_grad():
             for k, val_data in enumerate(tqdm(val_loader)):
@@ -133,19 +134,23 @@ def main(args):
                 if k % 20 == 1:
                     keeper.save_img(epoch, k, [val_img[0], val_depth[0], val_pred[0]])
 
-                val_loss = torch.sqrt(mse_criterion(val_pred, val_depth))
-                val_avg.update(val_loss.item())
-                log.info('val rmse of epoch/batch {}/{} is {}'.format(epoch, k, val_loss))
+                val_rmse = torch.sqrt(mse_criterion(val_pred, val_depth))
+                val_relabs = torch.mean(torch.abs(val_pred - val_depth) / val_depth)
+                val_rmse_avg.update(val_rmse.item())
+                val_relabs_avg.update(val_relabs.item())
+                log.info('val rmse of epoch/batch {}/{} is {}'.format(epoch, k, val_rmse))
 
-                writer.add_scalar('validation RMSE', val_loss, epoch * val_bts + k)
-            writer.add_scalar('Epoch validation RMSE', val_avg.avg, epoch)
+                writer.add_scalar('validation RMSE', val_rmse, epoch * val_bts + k)
+                writer.add_scalar('validation relative absolute error', val_relabs, epoch * val_bts + k)
+            writer.add_scalar('Epoch validation RMSE', val_rmse_avg.avg, epoch)
+            writer.add_scalar('Epoch validation absErrorRel', val_relabs_avg.avg, epoch)
 
-            keeper.save_loss([val_avg.avg], 'val_losses.csv')
+            # keeper.save_loss([val_rmse_avg.avg], 'val_losses.csv')
 
             optimizer = time_lr_scheduler(optimizer, epoch, lr_decay_epoch=10)
 
-        if val_avg.avg < best_loss:
-            best_loss = val_avg.avg
+        if val_rmse_avg.avg < best_loss:
+            best_loss = val_rmse_avg.avg
             keeper.save_checkpoint({
                 'epoch': epoch,
                 # 'state_dict': model.state_dict(),  # cpu
