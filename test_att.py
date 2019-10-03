@@ -96,7 +96,7 @@ if __name__ == '__main__':
         os.environ['CUDA_VISIBLE_DEVICES'] = ','.join('0')
 
     args = set_params()
-    args.depth_bin_interval = (np.log10(args.max_depth) - np.log10(args.min_depth)) / args.decoder_output_c
+    # args.depth_bin_interval = (np.log10(args.max_depth) - np.log10(args.min_depth)) / args.decoder_output_c
 
     pretrained = 'pretrained/best_model.pth'
     json_path = 'dataset/hitachi'
