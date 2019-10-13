@@ -5,5 +5,3 @@ train_results/*
 .DS_Store
 test_lin.py
 pretrained/*
-dataset/kitti/*
-dataset/nyuv2/*

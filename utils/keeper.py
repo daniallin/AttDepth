@@ -6,7 +6,7 @@ import json
 import logging
 import pickle
 import matplotlib
-matplotlib.use('AGG')
+# matplotlib.use('AGG')
 import matplotlib.pyplot as plt
 import pandas as pd
 

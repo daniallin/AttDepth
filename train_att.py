@@ -64,7 +64,7 @@ def main(args):
 
         for k, train_data in enumerate(tqdm(train_loader)):
             # print(train_img.size())
-            # if k > 0: break
+            if k > 0: break
             train_depth = train_data['depth'].type(torch.FloatTensor)
             train_img = train_data['rgb']
             if args.use_cuda:
@@ -135,6 +135,7 @@ def main(args):
                     keeper.save_img(epoch, k, [val_img[0], val_depth[0], val_pred[0]])
 
                 val_rmse = torch.sqrt(mse_criterion(val_pred, val_depth))
+                val_depth[val_depth.eq(0)] = 1e-5
                 val_relabs = torch.mean(torch.abs(val_pred - val_depth) / val_depth)
                 val_rmse_avg.update(val_rmse.item())
                 val_relabs_avg.update(val_relabs.item())

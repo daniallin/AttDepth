@@ -11,6 +11,8 @@ from torchvision import transforms
 
 def get_rgb_depth(raw_path, anno_path):
     for p in os.listdir(anno_path):
+        if "zip" in p:
+            continue
         phase = os.path.join(anno_path, p)
         img_path = list()
         for ind in os.listdir(phase):
@@ -81,7 +83,7 @@ def calculate_rgb_mean_std(img_path_list, minus_point_5=False):
 
 if __name__ == '__main__':
     # must set the path as your virtual kitti dataset path
-    get_rgb_depth('dataset/kitti_raw', 'E:/Datasets_Win/KITTI/depth/data_depth_annotated')
+    get_rgb_depth('/home/root123/Datasets/KITTI_raw', '/home/root123/Datasets/KITTI_depth')
 
     # img_path_list = []
     # for p in rgb:

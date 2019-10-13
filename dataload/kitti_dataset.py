@@ -47,7 +47,7 @@ class KITTIDataset():
 
         # to torch, normalize
         rgb = self.scale_torch(rgb, 255.)
-        depth = self.scale_torch(depth, 1)
+        depth = self.scale_torch(depth, 255.)
 
         data = {'rgb': rgb, 'depth': depth}
         return data
