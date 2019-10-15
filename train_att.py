@@ -100,14 +100,14 @@ def main(args):
 
             if k % 500 == 0:
                 writer.add_scalar('learning rate', optimizer.param_groups[0]['lr'], epoch * train_bts + k)
-                keeper.save_checkpoint({
-                    'epoch': epoch,
-                    'step': k,
-                    # 'state_dict': model.state_dict(),  # cpu
-                    'state_dict': model.module.state_dict(),  # GPU
-                    'optimizer': optimizer.state_dict(),
-                    'best_loss': best_loss,
-                }, 'step_chk.pth')
+                # keeper.save_checkpoint({
+                #     'epoch': epoch,
+                #     'step': k,
+                #     # 'state_dict': model.state_dict(),  # cpu
+                #     'state_dict': model.module.state_dict(),  # GPU
+                #     'optimizer': optimizer.state_dict(),
+                #     'best_loss': best_loss,
+                # }, 'step_chk.pth')
 
         # evaluating test data
         val_rmse_avg = AverageMeter()
@@ -131,7 +131,7 @@ def main(args):
                 val_depth *= mask
                 val_pred *= mask
 
-                if k % 20 == 1:
+                if k % 200 == 1:
                     keeper.save_img(epoch, k, [val_img[0], val_depth[0], val_pred[0]])
 
                 val_rmse = torch.sqrt(mse_criterion(val_pred, val_depth))
@@ -148,17 +148,7 @@ def main(args):
 
             # keeper.save_loss([val_rmse_avg.avg], 'val_losses.csv')
 
-            optimizer = time_lr_scheduler(optimizer, epoch, lr_decay_epoch=10)
-
-        if val_rmse_avg.avg < best_loss:
-            best_loss = val_rmse_avg.avg
-            keeper.save_checkpoint({
-                'epoch': epoch,
-                # 'state_dict': model.state_dict(),  # cpu
-                'state_dict': model.module.state_dict(),  # GPU
-                'optimizer': optimizer.state_dict(),
-                'best_loss': best_loss,
-            }, 'best_model.pth')
+            optimizer = time_lr_scheduler(optimizer, epoch, lr_decay_epoch=3)
 
         log.info('Saving model ...')
         keeper.save_checkpoint({
@@ -168,7 +158,10 @@ def main(args):
             'state_dict': model.module.state_dict(),  # GPU
             'optimizer': optimizer.state_dict(),
             'best_loss': best_loss,
-        })
+        }, is_best=val_rmse_avg.avg < best_loss)
+
+        if val_rmse_avg.avg < best_loss:
+            best_loss = val_rmse_avg.avg
 
         log.info('training time of epoch {}/{} is {} \n'.format(epoch + 1, args.epochs, time.time() - e_time))
 

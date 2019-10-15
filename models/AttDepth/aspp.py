@@ -30,8 +30,8 @@ class ASPP(nn.Module):
             inplanes = 2048
         if args.output_scale == 16:
             dilations = [1, 6, 12, 18]
-        elif args.output_scale == 8:
-            dilations = [1, 12, 24, 36]
+        elif args.output_scale == 32:
+            dilations = [1, 1, 6, 12]
         else:
             raise NotImplementedError
 

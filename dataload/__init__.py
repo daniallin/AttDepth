@@ -11,10 +11,8 @@ def data_loader(args, **kwargs):
         val_set = NYUV2Dataset(args.nyu_path, args, phase='val')
         print('Train_size: {}. Validation size: {}'.format(len(train_set), len(val_set)))
 
-        train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True,
-                                  num_workers=args.num_workers, **kwargs)
-        val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False,
-                                num_workers=args.num_workers, **kwargs)
+        train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, **kwargs)
+        val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, **kwargs)
         return train_loader, val_loader
 
     elif args.dataset == 'nyu_raw':
@@ -22,10 +20,8 @@ def data_loader(args, **kwargs):
         val_set = NYUV2Raw(args.nyu_path, args, phase='val')
         print('Train_size: {}. Validation size: {}'.format(len(train_set), len(val_set)))
 
-        train_loader = DataLoader(train_set, batch_size=args.batch_size,
-                                  num_workers=args.num_workers, shuffle=True, **kwargs)
-        val_loader = DataLoader(val_set, batch_size=args.batch_size,
-                                num_workers=args.num_workers, shuffle=False, **kwargs)
+        train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, **kwargs)
+        val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, **kwargs)
         return train_loader, val_loader
 
     elif args.dataset == 'kitti':
@@ -33,10 +29,8 @@ def data_loader(args, **kwargs):
         val_set = KITTIDataset(args.kitti_path, args, phase='val')
         print('Train_size: {}. Validation size: {}'.format(len(train_set), len(val_set)))
 
-        train_loader = DataLoader(train_set, batch_size=args.batch_size,
-                                  num_workers=args.num_workers, shuffle=True, **kwargs)
-        val_loader = DataLoader(val_set, batch_size=args.batch_size,
-                                num_workers=args.num_workers, shuffle=False, **kwargs)
+        train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, **kwargs)
+        val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, **kwargs)
         return train_loader, val_loader
     else:
         raise NotImplementedError

@@ -68,8 +68,9 @@ class DepthUpSample(nn.Module):
 class Decoder(nn.Module):
     def __init__(self, args):
         super(Decoder, self).__init__()
+        self.args = args
         if args.backbone == 'resnext':
-            self.low_feature_sizes = [512, 256, 64]
+            self.low_feature_sizes = [512, 256, 64, 1024]
             self.num_channels = 256
         else:
             raise NotImplementedError
@@ -77,10 +78,14 @@ class Decoder(nn.Module):
         chan = int(self.num_channels)
         # depth estimation
         self.conv1 = nn.Conv2d(chan, chan, kernel_size=1, stride=1, padding=1)
+        if args.output_scale == 32:
+            self.depth_up0 = DepthUpSample(chan // 1, chan // 1, self.low_feature_sizes[3])
+            self.depth_up4_0 = nn.Sequential(nn.Conv2d(chan // 8, chan // 16, 3, padding=1),
+                                           nn.LeakyReLU(0.2))
         self.depth_up1 = DepthUpSample(chan // 1, chan // 2, self.low_feature_sizes[0])
         self.depth_up2 = DepthUpSample(chan // 2, chan // 4, self.low_feature_sizes[1])
         self.depth_up3 = DepthUpSample(chan // 4, chan // 8, self.low_feature_sizes[2])
-        self.depth_up4 = nn.Sequential(nn.Conv2d(chan // 8, chan // 16, 3, padding=1),
+        self.depth_up4_1 = nn.Sequential(nn.Conv2d(chan // 8, chan // 16, 3, padding=1),
                                        nn.LeakyReLU(0.2))
         self.last_conv = nn.Sequential(nn.Conv2d(chan // 16, 1, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.2))
 
@@ -88,10 +93,17 @@ class Decoder(nn.Module):
 
     def forward(self, x, low_level_features):
         depth = self.conv1(x)
+        if self.args.output_scale == 32:
+            depth = self.depth_up0(depth, low_level_features[3])
         depth = self.depth_up1(depth, low_level_features[0])
         depth = self.depth_up2(depth, low_level_features[1])
         depth = self.depth_up3(depth, low_level_features[2])
-        depth = self.depth_up4(F.interpolate(depth, size=(depth.size()[-2]*2, depth.size()[-1]*2),
+
+        if self.args.output_scale == 32:
+            depth = self.depth_up4_0(F.interpolate(depth, size=(depth.size()[-2]*2, depth.size()[-1]*2),
+                                             mode='bilinear', align_corners=True))
+        else:
+            depth = self.depth_up4_1(F.interpolate(depth, size=(depth.size()[-2]*2, depth.size()[-1]*2),
                                              mode='bilinear', align_corners=True))
         depth = self.last_conv(depth)
 

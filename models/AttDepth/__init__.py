@@ -10,7 +10,12 @@ from models.AttDepth.multi_decoder import Decoder
 class AttDepth(nn.Module):
     def __init__(self, args):
         super(AttDepth, self).__init__()
-        self.encoder = resnext101_32x8d(args.use_pretrain, replace_stride_with_dilation=[False, False, True])
+        if args.output_scale == 16:
+            self.encoder = resnext101_32x8d(args.use_pretrain, replace_stride_with_dilation=[False, False, True])
+        elif args.output_scale == 32:
+            self.encoder = resnext101_32x8d(args.use_pretrain)
+        else:
+            raise BaseException("output scale should be 16 or 32")
         self.aspp = ASPP(args)
         self.decoder = Decoder(args)
 

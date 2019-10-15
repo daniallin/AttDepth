@@ -55,6 +55,10 @@ class NYUV2Raw():
         depth_abs = DEPTH_PARAM_1 / (DEPTH_PARAM_2 - depth_rel)
         depth_raw = np.clip(depth_abs, 0, None)
 
+        # from bts
+        depth_raw = depth_raw[45:472, 43:608, :]
+        rgb_raw = rgb_raw[45:472, 43:608, :]
+
         rgb, depth = self.img_transformer([rgb_raw, depth_raw])
 
         rgb = rgb.transpose((2, 0, 1))  # H*W*C to C*H*W

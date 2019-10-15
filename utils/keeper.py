@@ -1,5 +1,5 @@
 import os
-import glob
+import shutil
 import time
 import torch
 import json
@@ -22,10 +22,12 @@ class Keeper(object):
         if not os.path.exists(self.experiment_dir):
             os.makedirs(self.experiment_dir)
 
-    def save_checkpoint(self, state, filename='checkpoint.pth'):
+    def save_checkpoint(self, state, is_best=False):
         """Saves checkpoint to disk"""
-        filename = os.path.join(self.experiment_dir, filename)
+        filename = os.path.join(self.experiment_dir, 'checkpoint.pth')
         torch.save(state, filename)
+        if is_best:
+            shutil.copyfile(filename, os.path.join(self.experiment_dir, 'best_model.pth'))
 
     def save_experiment_config(self):
         config_file = os.path.join(self.experiment_dir, 'parameters.json')

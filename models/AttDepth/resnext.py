@@ -1,9 +1,5 @@
 # torchvision.model.resnet.py
-import torch
 import torch.nn as nn
-from torchvision.models import resnext101_32x8d
-
-# torch 1.2
 from torch.hub import load_state_dict_from_url
 
 
@@ -165,10 +161,9 @@ class ResNet(nn.Module):
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
                 conv1x1(self.inplanes, planes * block.expansion, stride),
-                norm_layer(planes * block.expansion),
-            )
+                norm_layer(planes * block.expansion),)
 
-        layers = []
+        layers = list()
         layers.append(block(self.inplanes, planes, stride, downsample, self.groups,
                             self.base_width, previous_dilation, norm_layer))
         self.inplanes = planes * block.expansion
@@ -189,8 +184,9 @@ class ResNet(nn.Module):
         x = self.layer2(x)
         low_feature_8 = x
         x = self.layer3(x)
+        low_feature_16 = x
         x = self.layer4(x)
-        low_features = (low_feature_8, low_feature_4, low_feature_2)
+        low_features = (low_feature_8, low_feature_4, low_feature_2, low_feature_16)
 
         return x, low_features
 
@@ -200,8 +196,7 @@ def _resnet(arch, block, layers, pretrained, progress, **kwargs):
     if pretrained:
         state_dict = model.state_dict()
         model_dict = {}
-        pretrained_dict = load_state_dict_from_url(model_urls[arch],
-                                              progress=progress)
+        pretrained_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
         for k, v in pretrained_dict.items():
             if k in state_dict:
                 model_dict[k] = v
