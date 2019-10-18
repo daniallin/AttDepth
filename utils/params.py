@@ -24,7 +24,7 @@ def set_params():
     parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--sync_bn', type=bool, default=False, help='whether using sync batch normalization')
     parser.add_argument('--output_scale', type=int, default=32, help='output scale of encoder')
-    parser.add_argument('--epochs', type=int, default=1)
+    parser.add_argument('--epochs', type=int, default=20)
     parser.add_argument('--start_epoch', type=int, default=0)
     parser.add_argument('--momentum', type=float, default=0.9, help='momentum (default: 0.9)')
     parser.add_argument('--weight_decay', type=float, default=1e-3, help='w-decay (default: 5e-4)')

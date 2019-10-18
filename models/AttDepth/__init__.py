@@ -28,10 +28,10 @@ class AttDepth(nn.Module):
         # input: batch_size, channel, height, width
         output, low_level_feature = self.encoder(input)
         output = self.aspp(output)
-        output = self.decoder(output, low_level_feature)
+        output, loss_sigma = self.decoder(output, low_level_feature)
         # print(output[0].size())
 
-        return output
+        return output, loss_sigma
 
 
 if __name__ == '__main__':

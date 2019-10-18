@@ -49,6 +49,7 @@ class AttConcat(nn.Module):
 class DepthUpSample(nn.Module):
     def __init__(self, in_chans, out_chans, low_size):
         super(DepthUpSample, self).__init__()
+        self.deconv = nn.ConvTranspose2d(in_chans, in_chans, 3, padding=1, stride=2, output_padding=1)
         self.attention = AttConcat(in_chans+low_size, low_size, method='concat')
         self.conv = nn.Sequential(nn.Conv2d(in_chans+low_size, out_chans, 3, padding=1),
                                   nn.LeakyReLU(0.2),
@@ -56,10 +57,8 @@ class DepthUpSample(nn.Module):
                                   nn.LeakyReLU(0.2))
 
     def forward(self, x, low_feature):
-        up_x = F.interpolate(x, size=low_feature.size()[2:], mode='bilinear', align_corners=True)
-        # att_x = torch.mul(up_x, self.attention(up_x, low_feature))
-        # att_low = torch.mul(low_feature, self.attention(up_x, low_feature))
-        # att_x = torch.cat((up_x, att_low), dim=1)
+        # up_x = F.interpolate(x, size=low_feature.size()[2:], mode='bilinear', align_corners=True)
+        up_x = self.deconv(x)
         att_x = self.attention(up_x, low_feature)
         output = self.conv(att_x)
         return output
@@ -75,9 +74,11 @@ class Decoder(nn.Module):
         else:
             raise NotImplementedError
 
+        self.loss_sigma = nn.Parameter(torch.Tensor([-0.5, -0.5, -0.5]))
+
         chan = int(self.num_channels)
         # depth estimation
-        self.conv1 = nn.Conv2d(chan, chan, kernel_size=1, stride=1, padding=1)
+        self.conv1 = nn.Conv2d(chan, chan, 1)
         if args.output_scale == 32:
             self.depth_up0 = DepthUpSample(chan // 1, chan // 1, self.low_feature_sizes[3])
             self.depth_up4_0 = nn.Sequential(nn.Conv2d(chan // 8, chan // 16, 3, padding=1),
@@ -107,7 +108,7 @@ class Decoder(nn.Module):
                                              mode='bilinear', align_corners=True))
         depth = self.last_conv(depth)
 
-        return depth
+        return depth, self.loss_sigma
 
 
 if __name__ == '__main__':

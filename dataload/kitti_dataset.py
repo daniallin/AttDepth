@@ -14,7 +14,7 @@ class KITTIDataset():
         self.phase = phase
         self.dir_anno = os.path.join(file_path, phase + '_raw_annotations.json')
         self.rgb_paths, self.depth_paths = self.get_paths()
-        self.depth_normalize = 255. * 80.
+        self.depth_normalize = 255.
 
     def get_paths(self):
         with open(self.dir_anno, 'r') as load_f:

@@ -11,7 +11,7 @@ from torch.utils.tensorboard import SummaryWriter
 from utils.params import set_params
 from utils.helper import AverageMeter, time_lr_scheduler
 from utils.keeper import Keeper
-from utils.loss import ssim, grad_loss
+from utils.loss import ssim, grad_loss, depth_scale_invariant
 from models import build_model
 from dataload import data_loader
 
@@ -19,7 +19,7 @@ from dataload import data_loader
 def main(args):
     model = build_model(args.model_name, args)
     optimizer = torch.optim.Adam(model.parameters(), args.lr, weight_decay=args.weight_decay)
-    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.5)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.5)
 
     log.info('loading data...\n')
     train_loader, val_loader = data_loader(args)
@@ -59,20 +59,20 @@ def main(args):
     for epoch in range(args.start_epoch, args.epochs):
         e_time = time.time()
         log.info('training: epoch {}/{} \n'.format(epoch+1, args.epochs))
+        scheduler.step()
 
         model.train()
-
         for k, train_data in enumerate(tqdm(train_loader)):
             # print(train_img.size())
-            if k > 0: break
-            train_depth = train_data['depth'].type(torch.FloatTensor)
+            # if k > 10: break
+            train_depth = train_data['depth']
             train_img = train_data['rgb']
             if args.use_cuda:
                 train_img, train_depth = train_img.cuda(), train_depth.cuda()
 
             optimizer.zero_grad()
 
-            train_pred = model(train_img)
+            train_pred, loss_sigma = model(train_img)
 
             # remove depth out of max depth
             mask = train_depth.le(args.max_depth) & train_depth.ge(args.min_depth)
@@ -83,12 +83,14 @@ def main(args):
             train_pred *= mask
 
             rmse = torch.sqrt(mse_criterion(train_pred, train_depth))
-            l_depth = l1_criterion(train_pred, train_depth)
+            # l_depth = l1_criterion(train_pred, train_depth)
+            l_depth = depth_scale_invariant(train_pred, train_depth)
             l_edge = grad_loss(train_pred, train_depth)
             l_ssim = torch.clamp((1 - ssim(train_pred, train_depth, val_range=10.0 / 0.001)) * 0.5, 0, 1)
             # print("losses: ", rmse, l_edge, l_ssim)
 
-            train_loss = (10 * l_ssim) + (10 * l_edge) + (1.0 * l_depth)
+            # train_loss = (10 * l_ssim) + (10 * l_edge) + (1.0 * l_depth)
+            train_loss = sum(1 / (2 * torch.exp(loss_sigma[i])) * loss + loss_sigma[i] / 2 for i in range(3) for loss in [l_depth, l_edge, l_ssim])
             train_loss.backward()
             optimizer.step()
             writer.add_scalar('training loss', train_loss, epoch * train_bts + k)
@@ -100,14 +102,6 @@ def main(args):
 
             if k % 500 == 0:
                 writer.add_scalar('learning rate', optimizer.param_groups[0]['lr'], epoch * train_bts + k)
-                # keeper.save_checkpoint({
-                #     'epoch': epoch,
-                #     'step': k,
-                #     # 'state_dict': model.state_dict(),  # cpu
-                #     'state_dict': model.module.state_dict(),  # GPU
-                #     'optimizer': optimizer.state_dict(),
-                #     'best_loss': best_loss,
-                # }, 'step_chk.pth')
 
         # evaluating test data
         val_rmse_avg = AverageMeter()
@@ -115,13 +109,13 @@ def main(args):
         model.eval()
         with torch.no_grad():
             for k, val_data in enumerate(tqdm(val_loader)):
-                # if k > 0: break
-                val_depth = val_data['depth'].type(torch.FloatTensor)
+                if k > 10: break
+                val_depth = val_data['depth']
                 val_img = val_data['rgb']
                 if args.use_cuda:
                     val_img, val_depth = val_img.cuda(), val_depth.cuda()
 
-                val_pred = model(val_img)
+                val_pred, _ = model(val_img)
 
                 # remove depth out of max depth
                 mask = val_depth.le(args.max_depth) & val_depth.ge(args.min_depth)
@@ -148,7 +142,7 @@ def main(args):
 
             # keeper.save_loss([val_rmse_avg.avg], 'val_losses.csv')
 
-            optimizer = time_lr_scheduler(optimizer, epoch, lr_decay_epoch=3)
+            # optimizer = time_lr_scheduler(optimizer, epoch, lr_decay_epoch=3)
 
         log.info('Saving model ...')
         keeper.save_checkpoint({

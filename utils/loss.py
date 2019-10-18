@@ -3,6 +3,12 @@ from math import exp
 import torch.nn.functional as F
 
 
+def depth_scale_invariant(pred, gt):
+    d = torch.log1p(pred) - torch.log1p(gt)
+    silog_loss = torch.sqrt(torch.mean(d ** 2) - 0.85 * (torch.mean(d) ** 2))
+    return silog_loss
+
+
 def gradient(x):
     # tf.image.image_gradients(image)
     l = x
