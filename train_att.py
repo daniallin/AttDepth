@@ -86,11 +86,13 @@ def main(args):
             # l_depth = l1_criterion(train_pred, train_depth)
             l_depth = depth_scale_invariant(train_pred, train_depth)
             l_edge = grad_loss(train_pred, train_depth)
-            l_ssim = torch.clamp((1 - ssim(train_pred, train_depth, val_range=10.0 / 0.001)) * 0.5, 0, 1)
+            l_ssim = torch.sqrt((1 - ssim(train_pred, train_depth, val_range=args.max_depth / args.min_depth)))
             # print("losses: ", rmse, l_edge, l_ssim)
 
             # train_loss = (10 * l_ssim) + (10 * l_edge) + (1.0 * l_depth)
-            train_loss = sum(1 / (2 * torch.exp(loss_sigma[i])) * loss + loss_sigma[i] / 2 for i in range(3) for loss in [l_depth, l_edge, l_ssim])
+            # train_loss = sum(1 / (2 * torch.exp(loss_sigma[i])) * loss + loss_sigma[i] / 2 for i in range(3) for loss in [l_depth, l_edge, l_ssim])
+            # train_loss = sum(loss_sigma[i] * loss for i in range(3) for loss in [l_depth, l_edge, l_ssim])
+            train_loss = sum([l_depth, l_edge, l_ssim])
             train_loss.backward()
             optimizer.step()
             writer.add_scalar('training loss', train_loss, epoch * train_bts + k)
@@ -109,7 +111,7 @@ def main(args):
         model.eval()
         with torch.no_grad():
             for k, val_data in enumerate(tqdm(val_loader)):
-                if k > 10: break
+                # if k > 10: break
                 val_depth = val_data['depth']
                 val_img = val_data['rgb']
                 if args.use_cuda:

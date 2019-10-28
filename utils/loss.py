@@ -27,7 +27,8 @@ def grad_loss(pred, gt):
     dy_gt, dx_gt = gradient(gt)
     dy_pred, dx_pred = gradient(pred)
     l_edge = torch.mean(torch.abs(dy_pred - dy_gt) + torch.abs(dx_pred - dx_gt))
-    return l_edge
+    # return l_edge
+    return torch.log(l_edge)
 
 
 def gaussian(window_size, sigma):

@@ -74,7 +74,9 @@ class Decoder(nn.Module):
         else:
             raise NotImplementedError
 
-        self.loss_sigma = nn.Parameter(torch.Tensor([-0.5, -0.5, -0.5]))
+        self.loss_sigma1 = nn.Parameter(torch.tensor(0.5))
+        self.loss_sigma2 = nn.Parameter(torch.tensor(0.2))
+        # self.loss_sigma3 = nn.Parameter(torch.tensor(0.3))
 
         chan = int(self.num_channels)
         # depth estimation
@@ -108,7 +110,7 @@ class Decoder(nn.Module):
                                              mode='bilinear', align_corners=True))
         depth = self.last_conv(depth)
 
-        return depth, self.loss_sigma
+        return depth, (self.loss_sigma1, self.loss_sigma2, 1. - self.loss_sigma1 - self.loss_sigma2)
 
 
 if __name__ == '__main__':
